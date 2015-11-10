@@ -1,5 +1,9 @@
 package com.epicodus.recommendations.api;
 
+import com.epicodus.recommendations.model.ActiveListings;
+
+import retrofit.Callback;
+
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 
@@ -25,5 +29,9 @@ public class Etsy {
                 .setRequestInterceptor(getInterceptor())
                 .build()
                 .create(Api.class);
+    }
+
+    public static void getActiveListings(Callback<ActiveListings> callback) {
+        getApi().activeListings("Images,Shop", callback);
     }
 }
