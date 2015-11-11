@@ -1,5 +1,6 @@
 package com.epicodus.recommendations;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.epicodus.recommendations.api.Etsy;
+import com.epicodus.recommendations.google.GoogleServicesHelper;
 import com.epicodus.recommendations.model.ActiveListings;
 
 public class MainActivity extends AppCompatActivity {
@@ -20,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
     private View progressBar;
     private TextView errorView;
 
+    private GoogleServicesHelper googleServicesHelper;
     private ListingAdapter adapter;
 
     @Override
@@ -48,19 +51,38 @@ public class MainActivity extends AppCompatActivity {
 
         recyclerView.setAdapter(adapter);
 
-        if (savedInstanceState == null) {
-            showLoading();
-            Etsy.getActiveListings(adapter);
-        } else {
+        googleServicesHelper = new GoogleServicesHelper(this, adapter);
+
+        showLoading();
+
+        if (savedInstanceState != null) {
             if (savedInstanceState.containsKey(STATE_ACTIVE_LISTINGS)) {
                 adapter.success((ActiveListings) savedInstanceState.getParcelable(STATE_ACTIVE_LISTINGS), null);
-                showList();
-            } else {
-                showLoading();
-                Etsy.getActiveListings(adapter);
             }
         }
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        googleServicesHelper.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        googleServicesHelper.disconnect();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        googleServicesHelper.handleActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == ListingAdapter.REQUEST_CODE_PLUS_ONE) {
+            adapter.notifyDataSetChanged();
+        }
 
 
     }
